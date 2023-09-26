@@ -10,13 +10,14 @@ class arguments:
     args = parser.parse_args()
 
 
-class select(connect, arguments):
+class Select(connect, arguments):
     """Select the data from the database by arguments on the CLI """
 
     def extract(self):
         try:
             query = "SELECT * FROM (%s)"
             param = self.args.name
+
             if param == "jobs":
                 query = "SELECT * FROM jobs order by job_id"
             elif param == "companies":
@@ -29,24 +30,22 @@ class select(connect, arguments):
                 query = "SELECT * FROM links_jobs order by link_id"
             elif param == "links_companies":
                 query = "SELECT * FROM links_companies order by link_id"
-            print(param)
+
             self.cursor.execute(query, (param,))
             records = self.cursor.fetchall()
+
             i = 1
             for data in records:
                 print(f"Record {i}: {data}")
                 print("")
                 i += 1
 
-            print("\nQuery returned successfully")
-
-
-        except(Exception) as error:
+        except Exception as error:
             print("An error occurred while connecting to the database!", error)
 
 
 def main():
-    s1 = select()
+    s1 = Select()
     s1.extract()
 
 

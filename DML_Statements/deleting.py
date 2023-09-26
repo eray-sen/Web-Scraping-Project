@@ -6,15 +6,17 @@ from RemoteJobs.Parameters.db_connection import connect
 from RemoteJobs.Parameters.identification import parameters
 
 
-class ScraperJob(parameters, connect, array):
+class ScraperExpiredJobs(array, parameters, connect):
     """Contains the "job_existence_ctr", and "delete_expired_jobs" functions"""
     def job_existence_ctr(self):
         """Checks the existence of the jobs by making comparisons on the database and website"""
         db_links = []
         current_links = []
+
         query_select_job = "SELECT link_url FROM links WHERE link_category = 'J'"
         self.cursor.execute(query_select_job)
         links = self.cursor.fetchall()  # the current links on the database
+
         for link in links:
             db_links.append(link[0])  # they are appended to the array in order to convert them into list from tuple
 
@@ -31,6 +33,7 @@ class ScraperJob(parameters, connect, array):
         for i in range(len(db_links)):
             if db_links[i] not in current_links:
                 self.expired_links.append(db_links[i])
+
         for x in self.expired_links:
             print(x)
         print(len(self.expired_links))
@@ -55,7 +58,7 @@ class ScraperJob(parameters, connect, array):
             self.cursor.execute(q_ctr_co, (co_ID,))  # the company is being checked if it has other offers.
             data_ctr = self.cursor.fetchall()
 
-            if data_ctr is None: # the company will be deleted from the database in the case it has no other offers
+            if data_ctr is None:  # the company will be deleted from the database in the case it has no other offers
                 self.cursor.execute(q_del_co, (co_ID,))
                 print("This company has been deleted!")
             else:
@@ -72,7 +75,7 @@ def main():
         """"")
         ans = input("Choice: ")
         start_time = time.time()
-        s = ScraperJob()
+        s = ScraperExpiredJobs()
 
         if ans == "1":
             s.job_existence_ctr()

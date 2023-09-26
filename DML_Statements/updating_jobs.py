@@ -7,14 +7,16 @@ from RemoteJobs.Parameters.identification import parameters
 import uuid
 
 
-class ScraperJob(parameters, connect, array):
+class ScraperNewJobs(array, parameters, connect):
     """"Contains the "new_jobs_check", "new_jobs", "extract_new_jobs", and "insert_new_jobs" functions"""
     def new_jobs_check(self):
         """Checks the new job adverts by making comparisons on the database and website"""
         db_links = []
         query_select_job = "SELECT link_url FROM links WHERE link_category = 'J'"
+
         self.cursor.execute(query_select_job)
         links = self.cursor.fetchall() # the links on the db are fetched
+
         for link in links:
             db_links.append(link[0])  # they are appended to the array in order to convert them into list from tuple
 
@@ -37,8 +39,10 @@ class ScraperJob(parameters, connect, array):
         """Gets some data of the new jobs"""
         db_links = []
         query_select_job = "SELECT link_url FROM links WHERE link_category = 'J'"
+
         self.cursor.execute(query_select_job)
         links = self.cursor.fetchall()  # the current links on the database
+
         for link in links:
             db_links.append(link[0])  # from tuple to list
 
@@ -65,6 +69,7 @@ class ScraperJob(parameters, connect, array):
                     if current_link not in db_links:
                         self.urls.append(current_link)
                         self.rec_fields.append(field)
+
             self.fields_amount.append([field, amount])
 
         print(len(self.urls))
@@ -76,6 +81,7 @@ class ScraperJob(parameters, connect, array):
             current_field = self.rec_fields[i]
             r = requests.get(current_link)
             sp = BeautifulSoup(r.content, "html.parser")
+
             name = sp.find("div", class_="job_description").find_all("p")[0].text
             brand = sp.find("div", class_="co_name").text
             post_date = sp.find("time").text.split(":")[1]
@@ -99,6 +105,7 @@ class ScraperJob(parameters, connect, array):
 
             if content_details:  # some job offers might be expired.
                 company_details = sp.find("div", class_="links_sm")("a")
+
                 for details in content_details:
                     location = details.find("div", class_="location_sm row").text.split(":")[1]
                     try:
@@ -135,9 +142,11 @@ class ScraperJob(parameters, connect, array):
         for field in self.fields_amount:
             name = field[0]
             amount = field[1]
+
             self.cursor.execute(query_field_id, (name,))
             field_id = self.cursor.fetchone()
             self.cursor.execute(query_field_update, (amount, field_id))
+
         for url in self.urls:  # LINKS
             ID = uuid.uuid4()
             self.cursor.execute(query_link, (str(ID), url, "J",))  # JOBS
@@ -151,7 +160,7 @@ class ScraperJob(parameters, connect, array):
             co_ID = uuid.uuid4()
 
             if data_link is None:
-                self.cursor.execute(query_link, (str(link_ID), url, "C")) 
+                self.cursor.execute(query_link, (str(link_ID), url, "C"))
                 self.cursor.execute(query_co, (str(co_ID), co_name))
                 self.cursor.execute(query_link_co, (str(link_ID), str(co_ID)))
 
@@ -166,10 +175,13 @@ class ScraperJob(parameters, connect, array):
             job_ID = uuid.uuid4()
             self.cursor.execute(query_co_select, (company_name,))
             co_ID = self.cursor.fetchone()
+
             self.cursor.execute(query_field_select, (field_name,))
             field_ID = self.cursor.fetchone()
+
             self.cursor.execute(query_link_select, (link,))
             link_ID = self.cursor.fetchone()
+
             self.cursor.execute(query_job, (str(job_ID), job_name, post_date, shift,
                                             salary, benefit, location, field_ID,
                                             co_ID, link_ID))
@@ -185,7 +197,7 @@ def main():
         """"")
         ans = input("Choice: ")
         start_time = time.time()
-        s = ScraperJob()
+        s = ScraperNewJobs()
 
         if ans == "1":
             s.new_jobs_check()

@@ -7,7 +7,7 @@ from RemoteJobs.Parameters.identification import parameters
 import uuid
 
 
-class ScraperJob(parameters, connect, array):
+class ScraperJobs(array, parameters, connect):
     """Contains the "extract", "extract details", and "insert" functions"""
     def extract(self, sector):
         """Extracts the main information of the job offers"""
@@ -32,6 +32,7 @@ class ScraperJob(parameters, connect, array):
             brand = job_adverts.find("img")["alt"]
             name = job_adverts.find("span", class_="font-weight-bold").text
             post_date = job_adverts.find("date").text
+
             if job_adverts.has_attr("href"):
                 link = self.base_url + job_adverts["href"]
 
@@ -56,6 +57,7 @@ class ScraperJob(parameters, connect, array):
             r = requests.get(self.urls[i])
             sp = BeautifulSoup(r.content, "html.parser")
             content_details = sp.find_all("div", class_="job_info_container_sm")
+
             if content_details:  # some job offers might be expired.
                 company_details = sp.find("div", class_="links_sm")("a")
                 for details in content_details:
@@ -96,6 +98,7 @@ class ScraperJob(parameters, connect, array):
         for i in range(len(self.urls_co)):
             url = self.urls_co[i]
             co_name = self.main_rec[i][0]
+
             self.cursor.execute(query_link_ctr, (url,))  # if the company already exists in table 'links'
             data_link = self.cursor.fetchone()
             link_ID = uuid.uuid4()
@@ -117,10 +120,13 @@ class ScraperJob(parameters, connect, array):
             job_ID = uuid.uuid4()
             self.cursor.execute(query_co_select, (company_name,))
             co_ID = self.cursor.fetchone()
+
             self.cursor.execute(query_field_select, (field_name,))
             field_ID = self.cursor.fetchone()
+
             self.cursor.execute(query_link_select, (link,))
             link_ID = self.cursor.fetchone()
+
             self.cursor.execute(query_job, (str(job_ID), job_name, post_date, shift,
                                             salary, benefit, location, field_ID,
                                             co_ID, link_ID))
@@ -130,7 +136,7 @@ class ScraperJob(parameters, connect, array):
 
 
 def main():
-    s = ScraperJob()
+    s = ScraperJobs()
     for sector in s.fields:
         s.extract(sector)
         s.extract_details()

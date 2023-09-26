@@ -6,21 +6,22 @@ from RemoteJobs.Parameters.db_connection import connect
 from RemoteJobs.Parameters.identification import parameters
 
 
-class ScraperJob(parameters, connect, array):
+class ScraperCurrentJobs(array,parameters, connect):
     """Contains only the "update" function"""
 
     def update(self):
         """Checks whether there is any data update in the job adverts by making a comparison on the database and
         website and makes updates on the database"""
         db_links = []
+
         query_select_job = "SELECT link_url FROM links WHERE link_category = 'J'"
         self.cursor.execute(query_select_job)
         links = self.cursor.fetchall()  # the links on the db are fetched
+
         for link in links:
             db_links.append(link[0])  # they are appended to the array in order to convert them into list from tuple
 
         for i in range(len(db_links)):
-            print(i)
             url = db_links[i]
             r = requests.get(url)
             sp = BeautifulSoup(r.content, "html.parser")
@@ -29,6 +30,7 @@ class ScraperJob(parameters, connect, array):
             if content_details:  # some job offers might be expired.
                 name = sp.find("div", class_="job_description").find_all("p")[0].text
                 post_date = sp.find("time").text.split(":")[1]
+
                 self.main_rec.append(
                     [name.strip(), post_date.strip()])
 
@@ -64,20 +66,24 @@ class ScraperJob(parameters, connect, array):
                 if c_name != e_name:
                     query_update = "UPDATE jobs SET job_name =(%s) WHERE link_id =(%s)"
                     self.cursor.execute(query_update, (c_name, link_id))
+
                 if c_date != e_date:
                     query_update = "UPDATE jobs SET job_post_date =(%s) WHERE link_id =(%s)"
                     self.cursor.execute(query_update, (c_date, link_id))
+
                 if c_salary != e_salary:
                     query_update = "UPDATE jobs SET job_salary =(%s) WHERE link_id =(%s)"
                     self.cursor.execute(query_update, (c_salary, link_id))
+
                 if c_benefit != e_benefit:
                     query_update = "UPDATE jobs SET job_benefit =(%s) WHERE link_id =(%s)"
                     self.cursor.execute(query_update, (c_benefit, link_id))
+
                 if c_location != e_location:
                     query_update = "UPDATE jobs SET job_location =(%s) WHERE link_id =(%s)"
                     self.cursor.execute(query_update, (c_location, link_id))
-            else:
 
+            else:
                 self.main_rec.append([None, None])
                 self.det_rec.append([None, None, None])  # in order to not have an 'out of list' error
 
@@ -86,7 +92,7 @@ class ScraperJob(parameters, connect, array):
 
 
 def main():
-    s = ScraperJob()
+    s = ScraperCurrentJobs()
     s.update()
 
 
