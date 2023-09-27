@@ -8,7 +8,7 @@ class connect:
         self.db_hostname = "localhost"
         self.db_database = "Database_Job_Offers"
         self.db_username = "eraysen"
-        self.db_pwd = "9591"
+        self.db_pwd = "****"
         self.db_port_id = 5432
 
         global connection
